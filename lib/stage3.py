@@ -101,6 +101,8 @@ IMPORTANT GUIDELINES:
    - Only use underscores when date is truly unknown/ambiguous (not mentioned or inferrable)
    - Example: If message says "October 25 at 2pm", output: "2025-10-25T14:00"
    - **Lunch timing inference**: If lunch time is mentioned (e.g., "lunch at 11:45"), the talk/event likely starts around that time or shortly after
+        - If lunch is mentioned, but no specific time, or no other time of the event, then assume the event starts at 11:45 AM and set the event to then as well, mark lunch is provided
+        - If pixl lunch is mentioned, note that the event always happens at Friday at 11:45 AM and goes for 1 hr. although there may be more time detail you can use in the message.
    - **Start time inference**: If only end-time is mentioned, infer start-time as 3 hours before the end-time (e.g., "ends at 5pm" → start at 2pm)
 
 3. **Relative Date Resolution**: Use the sent datetime to calculate:

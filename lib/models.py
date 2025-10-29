@@ -23,7 +23,8 @@ class SlackMessage(BaseModel):
     sending_user_name: str
     datetime: str  # YYYY-MM-DDTHH:mm:ss
     textract: str
-    file_paths: list[str]
+    urls: list[str] = Field(default_factory=list)
+    file_paths: list[str] = Field(default_factory=list)
     permalink: list[str]  # List to support aggregated messages
     original_indices: list[int]  # Row indices from Stage 1 (for traceability)
 

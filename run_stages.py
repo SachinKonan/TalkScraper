@@ -5,6 +5,8 @@ Runs Stage 1-4: Scraping → Aggregation → Extraction → Calendar
 """
 
 import argparse
+import tempfile
+import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -24,6 +26,8 @@ def main():
                        help='End datetime in format YYYY-MM-DDTHH:MM:SS')
     parser.add_argument('--output_dir', default='output',
                        help='Output directory for JSON files')
+    parser.add_argument('--skip-extraction', action='store_true',
+                       help='Skip Stage 3 (Gemini extraction) and Stage 4 (Calendar). Runs Stages 1-2 only.')
     parser.add_argument('--skip-calendar', action='store_true',
                        help='Skip Stage 4 (Google Calendar integration)')
     parser.add_argument('--overwrite', action='store_true',
@@ -46,51 +50,66 @@ def main():
     stage2_output = output_dir / f"stage2_aggregated_{timestamp}.json"
     stage3_output = output_dir / f"stage3_events_{timestamp}.json"
 
-    # Run Stage 1: Scraping
-    print("\n" + "="*80)
-    print("Running Stage 1: Slack Message Scraping")
-    print("="*80)
-    if args.use_cache and stage1_output.exists():
-        print(f"✓ Using cached file: {stage1_output}")
-    else:
-        stage1.main(start_dt, end_dt, stage1_output)
+    # Create temporary directory for file downloads (auto-deleted at end)
+    temp_dir = Path(tempfile.mkdtemp(prefix='slack_files_'))
 
-    # Run Stage 2: Aggregation
-    print("\n" + "="*80)
-    print("Running Stage 2: Message Aggregation")
-    print("="*80)
-    if args.use_cache and stage2_output.exists():
-        print(f"✓ Using cached file: {stage2_output}")
-    else:
-        stage2_aggregate.main(stage1_output, stage2_output)
-
-    # Run Stage 3: Event Extraction
-    print("\n" + "="*80)
-    print("Running Stage 3: Event Extraction with Gemini")
-    print("="*80)
-    if args.use_cache and stage3_output.exists():
-        print(f"✓ Using cached file: {stage3_output}")
-    else:
-        stage3.main(stage2_output, stage3_output)
-
-    # Run Stage 4: Google Calendar Integration (optional)
-    if not args.skip_calendar:
+    try:
+        # Run Stage 1: Scraping
         print("\n" + "="*80)
-        print("Running Stage 4: Google Calendar Integration")
+        print("Running Stage 1: Slack Message Scraping")
         print("="*80)
-        stage4.main(stage3_output, overwrite=args.overwrite)
-    else:
-        print("\n⊘ Skipping Stage 4 (Google Calendar)")
+        if args.use_cache and stage1_output.exists():
+            print(f"✓ Using cached file: {stage1_output}")
+        else:
+            stage1.main(start_dt, end_dt, temp_dir, stage1_output)
 
-    print("\n" + "="*80)
-    print("PIPELINE COMPLETE")
-    print("="*80)
-    print(f"Stage 1 output: {stage1_output}")
-    print(f"Stage 2 output: {stage2_output}")
-    print(f"Stage 3 output: {stage3_output}")
-    if not args.skip_calendar:
-        print("Stage 4: Events added to Google Calendar")
-    print("="*80)
+        # Run Stage 2: Aggregation
+        print("\n" + "="*80)
+        print("Running Stage 2: Message Aggregation")
+        print("="*80)
+        if args.use_cache and stage2_output.exists():
+            print(f"✓ Using cached file: {stage2_output}")
+        else:
+            stage2_aggregate.main(stage1_output, stage2_output)
+
+        # Run Stage 3: Event Extraction (optional)
+        if not args.skip_extraction:
+            print("\n" + "="*80)
+            print("Running Stage 3: Event Extraction with Gemini")
+            print("="*80)
+            if args.use_cache and stage3_output.exists():
+                print(f"✓ Using cached file: {stage3_output}")
+            else:
+                stage3.main(stage2_output, stage3_output)
+
+            # Run Stage 4: Google Calendar Integration (optional)
+            if not args.skip_calendar:
+                print("\n" + "="*80)
+                print("Running Stage 4: Google Calendar Integration")
+                print("="*80)
+                stage4.main(stage3_output, overwrite=args.overwrite)
+            else:
+                print("\n⊘ Skipping Stage 4 (Google Calendar)")
+        else:
+            print("\n⊘ Skipping Stage 3 (Gemini Extraction)")
+            print("⊘ Skipping Stage 4 (Google Calendar)")
+
+        print("\n" + "="*80)
+        print("PIPELINE COMPLETE")
+        print("="*80)
+        print(f"Stage 1 output: {stage1_output}")
+        print(f"Stage 2 output: {stage2_output}")
+        if not args.skip_extraction:
+            print(f"Stage 3 output: {stage3_output}")
+            if not args.skip_calendar:
+                print("Stage 4: Events added to Google Calendar")
+        print("="*80)
+
+    finally:
+        # Clean up temporary directory
+        if temp_dir.exists():
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            print(f"\n✓ Cleaned up temporary directory: {temp_dir}")
 
 
 if __name__ == "__main__":

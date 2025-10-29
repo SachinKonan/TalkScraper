@@ -52,6 +52,7 @@ def aggregate_messages(messages: list[SlackMessage]) -> list[SlackMessage]:
 
             # Collect all messages within 30 minutes
             textract_parts = [current.textract]
+            urls = current.urls.copy()
             permalinks = current.permalink.copy()
             file_paths = current.file_paths.copy()
             original_indices = current.original_indices.copy()
@@ -65,6 +66,7 @@ def aggregate_messages(messages: list[SlackMessage]) -> list[SlackMessage]:
                 # Check if within 30 minutes of the first message in group
                 if (next_dt - current_dt) <= timedelta(minutes=30):
                     textract_parts.append(next_msg.textract)
+                    urls.extend(next_msg.urls)
                     permalinks.extend(next_msg.permalink)
                     file_paths.extend(next_msg.file_paths)
                     original_indices.extend(next_msg.original_indices)
@@ -81,6 +83,7 @@ def aggregate_messages(messages: list[SlackMessage]) -> list[SlackMessage]:
                 sending_user_name=user,
                 datetime=latest_datetime,
                 textract=' [ADDITIONAL MESSAGE] '.join(textract_parts),
+                urls=list(dict.fromkeys(urls)),  # Deduplicate while preserving order
                 file_paths=file_paths,
                 permalink=permalinks,
                 original_indices=original_indices

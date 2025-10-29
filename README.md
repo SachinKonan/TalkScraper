@@ -150,17 +150,3 @@ AILAB_SLACK_TOKEN="xoxb-..."        # AI Lab workspace token
 CSGRAD_SLACK_TOKEN="xoxb-..."       # CS Grad workspace token
 GEMINI_API_KEY="AIzaSy..."          # Google Gemini API key
 ```
-
-## Key Features
-
-- **Parallel Sampling**: Gemini generates 3 candidates, picks highest density → 100% extraction reliability
-- **Smart Aggregation**: Combines related messages within 30-minute windows
-- **Recurring Events**: Proper RRULE support for weekly/biweekly/monthly events
-- **Overwrite Mode**: Deletes entire recurring series when updating
-- **Date Resolution**: Resolves "tomorrow", "Friday", etc. using message timestamp
-- **Time Inference**: Lunch timing, 3-hour talk duration defaults
-- **Deduplication**: Prevents duplicate events in aggregated messages
-- **Rate Limiting**: Exponential backoff for API errors
-- **Automated Logging**: All pipeline output posted to Slack
-
-
