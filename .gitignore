@@ -1,0 +1,48 @@
+# Sensitive files - DO NOT COMMIT
+.env
+*.json
+service-account.json
+credentials.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# Output files
+output/
+*.log
+background_daemon.log
+downloads/
+slack_scraper.egg-info/
+
+# PID files
+*.pid
+.run_in_background.pid
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Test outputs
+test_output/
+cache/
+nohup.out
