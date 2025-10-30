@@ -26,9 +26,9 @@ if [ -f .env ]; then
     done < .env
 fi
 
-# Calculate time window (last 4 hours to now)
-END_DT=$(date -u +"%Y-%m-%dT%H:%M:%S")
-START_DT=$(date -u -d '4 hours ago' +"%Y-%m-%dT%H:%M:%S")
+# Calculate time window (last 4 hours to now) in LOCAL time
+END_DT=$(date +"%Y-%m-%dT%H:%M:%S")
+START_DT=$(date -d '4 hours ago' +"%Y-%m-%dT%H:%M:%S")
 
 echo "=================================================="
 echo "Starting Slack scraper cron job"

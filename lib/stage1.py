@@ -78,22 +78,29 @@ def extract_urls_from_message(message: dict) -> list[str]:
     urls = []
     url_pattern = re.compile(r'https?://[^\s<>"\'\)]+')
 
+    def clean_slack_url(url: str) -> str:
+        """Remove Slack's pipe separator and text after it"""
+        return url.split('|')[0]
+
     # Extract from text
     if 'text' in message:
-        urls.extend(url_pattern.findall(message['text']))
+        raw_urls = url_pattern.findall(message['text'])
+        urls.extend([clean_slack_url(url) for url in raw_urls])
 
     # Extract from attachments
     if 'attachments' in message:
         for att in message['attachments']:
             if 'text' in att:
-                urls.extend(url_pattern.findall(att['text']))
+                raw_urls = url_pattern.findall(att['text'])
+                urls.extend([clean_slack_url(url) for url in raw_urls])
             if 'fallback' in att:
-                urls.extend(url_pattern.findall(att['fallback']))
+                raw_urls = url_pattern.findall(att['fallback'])
+                urls.extend([clean_slack_url(url) for url in raw_urls])
             # Also check for direct URL fields
             if 'from_url' in att:
-                urls.append(att['from_url'])
+                urls.append(clean_slack_url(att['from_url']))
             if 'title_link' in att:
-                urls.append(att['title_link'])
+                urls.append(clean_slack_url(att['title_link']))
 
     # Extract from blocks
     if 'blocks' in message:
@@ -102,9 +109,10 @@ def extract_urls_from_message(message: dict) -> list[str]:
                 for element in block.get('elements', []):
                     for item in element.get('elements', []):
                         if item.get('type') == 'link' and item.get('url'):
-                            urls.append(item['url'])
+                            urls.append(clean_slack_url(item['url']))
                         elif item.get('type') == 'text' and item.get('text'):
-                            urls.extend(url_pattern.findall(item['text']))
+                            raw_urls = url_pattern.findall(item['text'])
+                            urls.extend([clean_slack_url(url) for url in raw_urls])
 
     return urls
 
